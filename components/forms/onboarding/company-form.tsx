@@ -12,6 +12,18 @@ import {
   FormDescription,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { countryList } from "@/app/utils/country-list";
+import { Textarea } from "@/components/ui/textarea";
+import { UploadDropzone } from "@/components/uploadthing-rexported";
 
 export function CompanyForm() {
   const form = useForm<z.infer<typeof companySchema>>({
@@ -49,14 +61,109 @@ export function CompanyForm() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Company Location</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select Location" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectLabel>Worldwide</SelectLabel>
+                      <SelectItem value="worldwide">
+                        <span>🌍</span>
+                        <span>Worldwide / Remote</span>
+                      </SelectItem>
+                    </SelectGroup>
+                    <SelectGroup>
+                      <SelectLabel>Location</SelectLabel>
+                      {countryList.map((country) => (
+                        <SelectItem value={country.name} key={country.code}>
+                          <img
+                            src={country.flag}
+                            alt={country.name}
+                            className="w-3 h-3 inline-block mr-2 rounded-sm"
+                          />
+                          <span>{country.name}</span>
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <FormField
+            control={form.control}
+            name="website"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Website</FormLabel>
                 <FormControl>
-                  {/* 2:15 hours */}
+                  <Input placeholder="https://yourcompany.com" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="xAccount"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>X (Twitter)</FormLabel>
+                <FormControl>
+                  <Input placeholder="@your-company" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
         </div>
+        <FormField
+          control={form.control}
+          name="about"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>About</FormLabel>
+              <FormControl>
+                <Textarea
+                  placeholder="Tell us about your company..."
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="logo"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Company Logo</FormLabel>
+              <FormControl>
+                <UploadDropzone
+                  endpoint="imageUploader"
+                  onClientUploadComplete={(res) => {
+                    field.onChange(res[0].url);
+                  }}
+                  onUploadError={() => {
+                    console.error("Something went wrong");
+                  }}
+                  className="ut-button:bg-primary ut-button:text-white ut-button:hover:bg-primary/90 ut-label:text-muted-foreground ut-allowed-content:text-muted-foreground border-primary"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
       </form>
     </Form>
   );
