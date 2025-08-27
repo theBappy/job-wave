@@ -9,6 +9,7 @@ import {
 import { useState } from "react";
 import { UserTypeSelectionForm } from "./user-type-form";
 import { CompanyForm } from "./company-form";
+import { JobSeekerForm } from "./job-seeker-form";
 
 type UserSelectionType = "company" | "jobSeeker" | null;
 
@@ -29,7 +30,7 @@ export function OnboardingForm() {
         return userType === "company" ? (
           <CompanyForm />
         ) : (
-          <p>User is a job-seeker</p>
+          <JobSeekerForm />
         );
       default:
         return null;
