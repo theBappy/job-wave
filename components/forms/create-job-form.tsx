@@ -167,12 +167,13 @@ export function CreateJobForm() {
                 <FormItem>
                   <FormLabel>Job Description</FormLabel>
                   <FormControl>
-                    <JobDescriptionEditor />
+                    <JobDescriptionEditor field={field as any} />
                   </FormControl>
-                  <FromMessage />
+                  <FormMessage />
                 </FormItem>
               )}
             />
+            
           </CardContent>
         </Card>
       </form>
