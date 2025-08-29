@@ -32,18 +32,37 @@ import Image from "next/image";
 import { Button } from "../ui/button";
 import { XIcon } from "lucide-react";
 import { UploadDropzone } from "../uploadthing-rexported";
+import { JobListingDuration } from "../general/job-listing-duration-selector";
+import { createJob } from "@/app/actions";
+import { useState } from "react";
 
-export function CreateJobForm() {
+interface Props {
+  companyName: string;
+  companyLocation: string;
+  companyAbout: string;
+  companyLogo: string;
+  companyWebsite: string;
+  companyXAccount: string | null;
+}
+
+export function CreateJobForm({
+  companyName,
+  companyAbout,
+  companyLocation,
+  companyLogo,
+  companyWebsite,
+  companyXAccount,
+}: Props) {
   const form = useForm<z.infer<typeof jobSchema>>({
     resolver: zodResolver(jobSchema),
     defaultValues: {
       benefits: [],
-      companyAbout: "",
-      companyLocation: "",
-      companyLogo: "",
-      companyName: "",
-      companyWebsite: "",
-      companyXAccount: "",
+      companyAbout: companyAbout,
+      companyLocation: companyLocation,
+      companyLogo: companyLogo,
+      companyName: companyName,
+      companyWebsite: companyWebsite,
+      companyXAccount: companyXAccount || "",
       employmentType: "",
       jobDescription: "",
       jobTitle: "",
@@ -54,15 +73,33 @@ export function CreateJobForm() {
     },
   });
 
+  const [pending, setPending] = useState(false);
+
+  async function onSubmit(values: z.infer<typeof jobSchema>) {
+    try {
+      setPending(true);
+      await createJob(values);
+    } catch (error) {
+      if (error instanceof Error && error.message !== "NEXT_REDIRECT") {
+        console.log("Something went wrong");
+      }
+    } finally {
+      setPending(false);
+    }
+  }
+
   return (
     <Form {...form}>
-      <form className="col-span-1 lg:col-span-2 flex flex-col gap-8">
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="col-span-1 lg:col-span-2 flex flex-col gap-8"
+      >
         <Card>
           <CardHeader>
             <CardTitle>Job Information</CardTitle>
           </CardHeader>
 
-          <CardContent>
+          <CardContent className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <FormField
                 control={form.control}
@@ -198,7 +235,7 @@ export function CreateJobForm() {
           <CardHeader>
             <CardTitle>Company Information</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <FormField
                 control={form.control}
@@ -351,6 +388,32 @@ export function CreateJobForm() {
             />
           </CardContent>
         </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Job Listing Duration</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <FormField
+              control={form.control}
+              name="listingDuration"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <JobListingDuration field={field as any} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </CardContent>
+        </Card>
+        <Button
+          disabled={pending}
+          type="submit"
+          className="w-full cursor-pointer"
+        >
+          {pending ? "Submitting..." : "Create Job Post"}
+        </Button>
       </form>
     </Form>
   );

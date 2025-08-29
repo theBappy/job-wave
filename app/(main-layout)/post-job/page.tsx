@@ -11,8 +11,11 @@ import instagram from "@/public/6.svg";
 import microsoft from "@/public/1.svg";
 import apple from "@/public/2.svg";
 import tiktok from "@/public/3.svg";
-import Image from 'next/image'
+import Image from "next/image";
 import { CreateJobForm } from "@/components/forms/create-job-form";
+import { prisma } from "@/app/utils/db";
+import { requireUser } from "@/app/utils/requireUser";
+import { redirect } from "next/navigation";
 
 const companies = [
   {
@@ -49,43 +52,79 @@ const companies = [
 
 const testimonials = [
   {
-    quote: "This platform made hiring so much faster and easier. We found the perfect candidate in just three days!",
+    quote:
+      "This platform made hiring so much faster and easier. We found the perfect candidate in just three days!",
     author: "Sarah Mitchell",
-    company: "TechNova Solutions"
+    company: "TechNova Solutions",
   },
   {
-    quote: "As a growing startup, we needed talented people quickly. This job platform delivered beyond expectations.",
+    quote:
+      "As a growing startup, we needed talented people quickly. This job platform delivered beyond expectations.",
     author: "James Carter",
-    company: "BrightPath Labs"
+    company: "BrightPath Labs",
   },
   {
-    quote: "The quality of applicants has been outstanding. We’ve filled multiple roles with top talent.",
+    quote:
+      "The quality of applicants has been outstanding. We’ve filled multiple roles with top talent.",
     author: "Emily Rodriguez",
-    company: "NextGen Finance"
+    company: "NextGen Finance",
   },
   {
-    quote: "User-friendly and efficient—this platform has completely transformed how we hire.",
+    quote:
+      "User-friendly and efficient—this platform has completely transformed how we hire.",
     author: "Michael Lee",
-    company: "InnovateX"
+    company: "InnovateX",
   },
   {
-    quote: "We saved so much time on recruitment thanks to the smart matching system.",
+    quote:
+      "We saved so much time on recruitment thanks to the smart matching system.",
     author: "Priya Sharma",
-    company: "GlobalEdge Consulting"
-  }
+    company: "GlobalEdge Consulting",
+  },
 ];
 
 const stats = [
-  {id: 0, value: "10K+", label: "Monthly active job seekers"},
-  {id: 1, value: "48h", label: "Average time to hire"},
-  {id: 2, value: "95%", label: "Employer satisfaction rate"},
-  {id: 3, value: "675+", label: "Companies hiring remotely"},
-]
+  { id: 0, value: "10K+", label: "Monthly active job seekers" },
+  { id: 1, value: "48h", label: "Average time to hire" },
+  { id: 2, value: "95%", label: "Employer satisfaction rate" },
+  { id: 3, value: "675+", label: "Companies hiring remotely" },
+];
 
-export default function PostJobPage() {
+async function getCompany(userId: string) {
+  const data = await prisma.company.findUnique({
+    where: {
+      userId: userId,
+    },
+    select: {
+      name: true,
+      location: true,
+      about: true,
+      logo: true,
+      xAccount: true,
+      website: true,
+    },
+  });
+
+  if (!data) {
+    return redirect("/");
+  }
+  return data;
+}
+
+export default async function PostJobPage() {
+  const session = await requireUser();
+  const data = await getCompany(session.id as string);
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-5">
-      <CreateJobForm />
+      <CreateJobForm
+        companyAbout={data.about}
+        companyLocation={data.location}
+        companyLogo={data.logo}
+        companyName={data.name}
+        companyWebsite={data.website}
+        companyXAccount={data.xAccount}
+      />
       <div className="col-span-1">
         <Card>
           <CardHeader>
@@ -113,14 +152,16 @@ export default function PostJobPage() {
             </div>
             <div className="space-y-4">
               {testimonials.map((testimonial, index) => (
-                <blockquote key={index} className="border-l-2 border-primary pl-4">
-                    <p className="text-sm text-muted-foreground italic">
-                      "{testimonial.quote}"
-                    </p>
-                    <footer className="mt-2 text-sm font-medium">
-                      - {testimonial.author},
-                        {testimonial.company}
-                    </footer>
+                <blockquote
+                  key={index}
+                  className="border-l-2 border-primary pl-4"
+                >
+                  <p className="text-sm text-muted-foreground italic">
+                    "{testimonial.quote}"
+                  </p>
+                  <footer className="mt-2 text-sm font-medium">
+                    - {testimonial.author},{testimonial.company}
+                  </footer>
                 </blockquote>
               ))}
             </div>
@@ -128,8 +169,8 @@ export default function PostJobPage() {
             <div className="grid grid-cols-2 gap-4">
               {stats.map((stat) => (
                 <div key={stat.id} className="rounded-lg bg-muted p-4">
-                    <h4 className="text-2xl font-bold">{stat.value}</h4>
-                    <p className='text-sm text-muted-foreground'>{stat.label}</p>
+                  <h4 className="text-2xl font-bold">{stat.value}</h4>
+                  <p className="text-sm text-muted-foreground">{stat.label}</p>
                 </div>
               ))}
             </div>
