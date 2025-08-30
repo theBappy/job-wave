@@ -20,10 +20,12 @@ model User {
   stripeCustomerId String? @unique
 
   userType            UserType?
-  onBoardingCompleted Boolean  @default(false)
+  onBoardingCompleted Boolean   @default(false)
 
   Company   Company?
   JobSeeker JobSeeker?
+
+  SavedJobPost SavedJobPost[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -109,26 +111,43 @@ model VerificationToken {
 model JobPost {
   id String @id @default(uuid())
 
-  jobTitle String
-  employmentType String
-  location String
-  salaryFrom Int
-  salaryTo Int
-  jobDescription String
+  jobTitle        String
+  employmentType  String
+  location        String
+  salaryFrom      Int
+  salaryTo        Int
+  jobDescription  String
   listingDuration Int
-  benefits String[]
+  benefits        String[]
 
   status JobPostStatus @default(DRAFT)
-  
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  Company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  Company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
   companyId String
+
+  SavedJobPost SavedJobPost[]
 }
 
 enum JobPostStatus {
   DRAFT
   ACTIVE
   EXPIRED
+}
+
+model SavedJobPost {
+  id String @id @default(ulid())
+
+  JobPost   JobPost @relation(fields: [jobPostId], references: [id], onDelete: Cascade)
+  jobPostId String
+
+  User   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, jobPostId])
 }
