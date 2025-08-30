@@ -1,3 +1,4 @@
+import arcjet, { detectBot, tokenBucket } from "@/app/utils/arcjet";
 import { getFlagEmoji } from "@/app/utils/country-list";
 import { prisma } from "@/app/utils/db";
 import { benefits } from "@/app/utils/list-of-benefits";
@@ -6,9 +7,40 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { request } from "@arcjet/next";
 import { Heart } from "lucide-react";
 import Image from "next/image";
 import { notFound } from "next/navigation";
+import { auth } from "@/app/utils/auth";
+
+const aj = arcjet.withRule(
+  detectBot({
+    mode: "LIVE",
+    allow: ["CATEGORY:SEARCH_ENGINE", "CATEGORY:PREVIEW"],
+  })
+);
+
+function getClient(session: boolean) {
+  if (session) {
+    return aj.withRule(
+      tokenBucket({
+        mode: "LIVE",
+        capacity: 100,
+        interval: 60,
+        refillRate: 30,
+      })
+    );
+  } else {
+    return aj.withRule(
+      tokenBucket({
+        mode: "LIVE",
+        capacity: 100,
+        interval: 60,
+        refillRate: 10,
+      })
+    );
+  }
+}
 
 async function getJob(jobId: string) {
   const jobData = await prisma.jobPost.findUnique({
@@ -48,6 +80,15 @@ type Params = Promise<{
 
 export default async function JobIdPage({ params }: { params: Params }) {
   const { jobId } = await params;
+  const session = await auth();
+
+  const req = await request();
+  const decision = await getClient(!!session).protect(req, { requested: 10 });
+
+  if (decision.isDenied()) {
+    throw new Error("forbidden");
+  }
+
   const data = await getJob(jobId);
   const locationFlag = getFlagEmoji(data.location);
 
