@@ -122,7 +122,7 @@ export default async function MyJobsPage() {
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="icon">
-                            <MoreHorizontal />
+                            <MoreHorizontal className="cursor-pointer" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
